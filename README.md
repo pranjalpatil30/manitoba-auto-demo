@@ -148,7 +148,7 @@ Edit [terraform/terraform.tfvars](terraform/terraform.tfvars):
 ```hcl
 ssh_public_key = "ssh-ed25519 AAAA... your full public key"
 # optional overrides:
-# namespace        = "pranjal30-dev"
+# namespace        = "pranjalpatil-ibm-dev"
 # vm_name          = "rhel-10-demo-vm-terraform"
 # service_name     = "headless-tf"
 # vm_user          = "rhel"
@@ -238,7 +238,7 @@ After provisioning, point the demo inventory at the new VM. Edit [network-automa
 all:
   hosts:
     network-node-1:
-      ansible_host: rhel-10-demo-vm-terraform.headless-tf.pranjal30-dev.svc.cluster.local
+      ansible_host: rhel-10-manitoba-auto.headless.pranjalpatil-ibm-dev.svc.cluster.local
       ansible_user: rhel
       ansible_port: 22
 ```
@@ -252,7 +252,7 @@ To clean up: launch *Destroy VM (k8s)*.
 The defaults in [provision_vm_k8s.yml](network-automation-demo/playbooks/provision_vm_k8s.yml) match the Terraform defaults. Override via additional survey questions or *Extra Variables* on the Job Template:
 
 ```yaml
-namespace: pranjal30-dev
+namespace: pranjalpatil-ibm-dev
 vm_name: rhel-10-demo-vm-terraform
 service_name: headless-tf
 vm_user: rhel
