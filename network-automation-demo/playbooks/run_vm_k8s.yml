@@ -1,0 +1,86 @@
+---
+- name: Start and verify OpenShift Virtualization VM
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    namespace: pranjalpatil-ibm-dev
+    vm_name: rhel-10-demo-vm-terraform
+    service_name: headless-tf
+    wait_timeout: 300  # 5 minutes
+
+  tasks:
+    - name: Ensure VirtualMachine exists
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+      register: vm_info
+      failed_when: vm_info.resources | length == 0
+
+    - name: Start VirtualMachine (if not already running)
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: kubevirt.io/v1
+          kind: VirtualMachine
+          metadata:
+            name: "{{ vm_name }}"
+            namespace: "{{ namespace }}"
+          spec:
+            runStrategy: Always
+
+    - name: Wait for VirtualMachineInstance to be created
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachineInstance
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+      register: vmi_info
+      until: vmi_info.resources | length > 0
+      retries: 30
+      delay: 10
+
+    - name: Wait for VM to be Running
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachineInstance
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+      register: vmi_status
+      until: 
+        - vmi_status.resources | length > 0
+        - vmi_status.resources[0].status.phase is defined
+        - vmi_status.resources[0].status.phase == "Running"
+      retries: 60
+      delay: 5
+
+    - name: Get VM IP address
+      set_fact:
+        vm_ip: "{{ vmi_status.resources[0].status.interfaces[0].ipAddress | default('N/A') }}"
+
+    - name: Wait for SSH to be available
+      wait_for:
+        host: "{{ vm_name }}.{{ service_name }}.{{ namespace }}.svc.cluster.local"
+        port: 22
+        timeout: "{{ wait_timeout }}"
+        state: started
+      ignore_errors: yes
+      register: ssh_wait
+
+    - name: Display VM status
+      debug:
+        msg:
+          - "VM Status: Running"
+          - "VM Name: {{ vm_name }}"
+          - "VM IP: {{ vm_ip }}"
+          - "SSH Target: {{ vm_name }}.{{ service_name }}.{{ namespace }}.svc.cluster.local"
+          - "SSH Available: {{ 'Yes' if ssh_wait is succeeded else 'Pending (may take a few more minutes)' }}"
+
+    - name: Confirm VM is ready
+      debug:
+        msg: "VM {{ vm_name }} is running and ready for use"
+
+# Made with Bob

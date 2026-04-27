@@ -26,14 +26,6 @@
         name: "{{ service_name }}"
         namespace: "{{ namespace }}"
 
-    - name: Delete cloud-init Secret
-      kubernetes.core.k8s:
-        state: absent
-        api_version: v1
-        kind: Secret
-        name: "{{ vm_name }}-cloud-init"
-        namespace: "{{ namespace }}"
-
     - name: Confirm teardown
       debug:
-        msg: "VM, Service, and cloud-init Secret deleted from {{ namespace }}"
+        msg: "VM and Service deleted from {{ namespace }}"

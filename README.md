@@ -82,7 +82,7 @@ Edit [network-automation-demo/inventory.yml](network-automation-demo/inventory.y
 ```yaml
 all:
   hosts:
-    network-node-1:
+    auto-hosts:
       ansible_host: <vm-name>.<service-name>.<namespace>.svc.cluster.local
       ansible_user: rhel
       ansible_port: 22
@@ -111,7 +111,7 @@ oc -n <namespace> patch service headless -p '{"spec":{"selector":{"kubevirt.io/d
      - Source: `Sourced from a Project`
      - Project: the one created above
      - Inventory file: `network-automation-demo/inventory.yml`
-   - Sync → check *Hosts* tab for `network-node-1`
+   - Sync → check *Hosts* tab for `auto-hosts`
 4. **Job Templates** — create one per playbook:
    - `01-Check Config` → playbook `network-automation-demo/playbooks/01_check_config.yml`
    - `02-Remediate Config` → playbook `network-automation-demo/playbooks/02_remediate_config.yml`
@@ -237,7 +237,7 @@ After provisioning, point the demo inventory at the new VM. Edit [network-automa
 ```yaml
 all:
   hosts:
-    network-node-1:
+    auto-hosts:
       ansible_host: rhel-10-manitoba-auto.headless.pranjalpatil-ibm-dev.svc.cluster.local
       ansible_user: rhel
       ansible_port: 22

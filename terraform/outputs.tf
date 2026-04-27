@@ -8,7 +8,7 @@ output "ansible_inventory_snippet" {
   value       = <<-EOT
     all:
       hosts:
-        network-node-1:
+        auto-hosts:
           ansible_host: ${var.vm_name}.${var.service_name}.${var.namespace}.svc.cluster.local
           ansible_user: ${var.vm_user}
           ansible_port: 22
