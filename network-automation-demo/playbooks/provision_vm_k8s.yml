@@ -70,7 +70,7 @@
             name: "{{ vm_name }}"
             namespace: "{{ namespace }}"
           spec:
-            running: true
+            runStrategy: Always
             dataVolumeTemplates:
               - metadata:
                   name: "{{ vm_name }}-rootdisk"
@@ -116,7 +116,7 @@
                       name: "{{ vm_name }}-rootdisk"
                   - name: cloudinitdisk
                     cloudInitNoCloud:
-                      secretRef:
+                      userDataSecretRef:
                         name: "{{ vm_name }}-cloud-init"
 
     - name: Show VM cluster DNS
