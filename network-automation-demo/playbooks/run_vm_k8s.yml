@@ -20,18 +20,53 @@
       register: vm_info
       failed_when: vm_info.resources | length == 0
 
-    - name: Start VirtualMachine via start subresource
-      uri:
-        url: "https://kubernetes.default.svc/apis/subresources.kubevirt.io/v1/namespaces/{{ namespace }}/virtualmachines/{{ vm_name }}/start"
-        method: PUT
-        headers:
-          Authorization: "Bearer {{ lookup('file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
-          Content-Type: "application/json"
-        validate_certs: no
-        status_code: [200, 202]
-        body_format: json
-        body: {}
+    - name: Check if VM is already running
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachineInstance
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+      register: vmi_check
+
+    - name: Start VirtualMachine via kubectl command
+      command: >
+        kubectl patch virtualmachine {{ vm_name }}
+        -n {{ namespace }}
+        --type merge
+        -p '{"spec":{"runStrategy":"RerunOnFailure"}}'
+      when: vmi_check.resources | length == 0
       register: start_result
+      changed_when: start_result.rc == 0
+      failed_when: false
+
+    - name: Alternative - Use oc/kubectl virtctl start command
+      command: kubectl virt start {{ vm_name }} -n {{ namespace }}
+      when:
+        - vmi_check.resources | length == 0
+        - start_result is failed or start_result is skipped
+      register: virtctl_start
+      changed_when: virtctl_start.rc == 0
+      failed_when: false
+
+    - name: Last resort - Patch to RerunOnFailure using kubernetes.core
+      kubernetes.core.k8s:
+        state: present
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+        definition:
+          spec:
+            runStrategy: RerunOnFailure
+      when:
+        - vmi_check.resources | length == 0
+        - (start_result is failed or start_result is skipped) and (virtctl_start is failed or virtctl_start is skipped)
+      register: k8s_patch_result
+      failed_when: false
+
+    - name: Display start attempt results
+      debug:
+        msg: "VM start initiated. Waiting for VM to become ready..."
 
     - name: Wait for VirtualMachineInstance to be created
       kubernetes.core.k8s_info:
