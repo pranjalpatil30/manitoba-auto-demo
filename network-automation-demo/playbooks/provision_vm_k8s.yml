@@ -52,7 +52,7 @@
             name: "{{ vm_name }}"
             namespace: "{{ namespace }}"
           spec:
-            runStrategy: Always
+            runStrategy: Manual
             dataVolumeTemplates:
               - metadata:
                   name: "{{ vm_name }}-rootdisk"

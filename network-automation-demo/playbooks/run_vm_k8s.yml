@@ -20,17 +20,28 @@
       register: vm_info
       failed_when: vm_info.resources | length == 0
 
-    - name: Start VirtualMachine (if not already running)
+    - name: Start VirtualMachine using virtctl
       kubernetes.core.k8s:
         state: present
-        definition:
-          apiVersion: kubevirt.io/v1
-          kind: VirtualMachine
-          metadata:
-            name: "{{ vm_name }}"
-            namespace: "{{ namespace }}"
+        api_version: subresources.kubevirt.io/v1
+        kind: VirtualMachine
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+        resource_definition:
           spec:
-            runStrategy: Always
+            running: true
+      ignore_errors: yes
+
+    - name: Alternative - Start VM by patching running field
+      kubernetes.core.k8s:
+        state: patched
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+        definition:
+          spec:
+            running: true
 
     - name: Wait for VirtualMachineInstance to be created
       kubernetes.core.k8s_info:
