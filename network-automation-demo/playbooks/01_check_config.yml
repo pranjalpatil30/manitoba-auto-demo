@@ -1,0 +1,34 @@
+---
+- name: Check network configuration
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Ensure demo directory exists
+      file:
+        path: /tmp/network_demo
+        state: directory
+        mode: "0755"
+
+    - name: Seed broken config if missing
+      copy:
+        dest: /tmp/network_demo/config.txt
+        content: |
+          hostname=router1
+          ntp=disabled
+          snmp=disabled
+        force: no
+
+    - name: Read current config
+      command: cat /tmp/network_demo/config.txt
+      register: current_config
+
+    - name: Show current config
+      debug:
+        var: current_config.stdout_lines
+
+    - name: Check if NTP is enabled
+      fail:
+        msg: "NTP is NOT enabled - remediation required"
+      when: "'ntp=enabled' not in current_config.stdout"
+      ignore_errors: yes

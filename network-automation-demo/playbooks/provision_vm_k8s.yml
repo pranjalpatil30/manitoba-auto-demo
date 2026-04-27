@@ -1,0 +1,124 @@
+---
+- name: Provision OpenShift Virtualization VM via kubernetes.core
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    namespace: pranjal30-dev
+    vm_name: rhel-10-demo-vm-terraform
+    service_name: headless-tf
+    vm_user: rhel
+    data_source_name: rhel10
+    root_disk_size: 30Gi
+    memory: 2Gi
+    cpu_cores: 1
+    # ssh_public_key: must be supplied via extra_vars or an AAP survey
+
+  tasks:
+    - name: Validate ssh_public_key was provided
+      assert:
+        that:
+          - ssh_public_key is defined
+          - ssh_public_key | length > 0
+        fail_msg: "ssh_public_key is required (pass via -e or AAP survey)"
+
+    - name: Create cloud-init Secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: "{{ vm_name }}-cloud-init"
+            namespace: "{{ namespace }}"
+          type: Opaque
+          stringData:
+            userdata: |
+              #cloud-config
+              user: {{ vm_user }}
+              chpasswd: { expire: False }
+              ssh_authorized_keys:
+                - {{ ssh_public_key }}
+
+    - name: Create headless Service
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: "{{ service_name }}"
+            namespace: "{{ namespace }}"
+          spec:
+            clusterIP: None
+            selector:
+              kubevirt.io/domain: "{{ vm_name }}"
+            ports:
+              - name: ssh
+                port: 22
+                targetPort: 22
+                protocol: TCP
+
+    - name: Create VirtualMachine
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: kubevirt.io/v1
+          kind: VirtualMachine
+          metadata:
+            name: "{{ vm_name }}"
+            namespace: "{{ namespace }}"
+          spec:
+            running: true
+            dataVolumeTemplates:
+              - metadata:
+                  name: "{{ vm_name }}-rootdisk"
+                spec:
+                  sourceRef:
+                    kind: DataSource
+                    name: "{{ data_source_name }}"
+                    namespace: openshift-virtualization-os-images
+                  storage:
+                    resources:
+                      requests:
+                        storage: "{{ root_disk_size }}"
+            template:
+              metadata:
+                labels:
+                  kubevirt.io/domain: "{{ vm_name }}"
+                  vm.kubevirt.io/name: "{{ vm_name }}"
+              spec:
+                hostname: "{{ vm_name }}"
+                subdomain: "{{ service_name }}"
+                domain:
+                  cpu:
+                    cores: "{{ cpu_cores }}"
+                  memory:
+                    guest: "{{ memory }}"
+                  devices:
+                    disks:
+                      - name: rootdisk
+                        disk:
+                          bus: virtio
+                      - name: cloudinitdisk
+                        disk:
+                          bus: virtio
+                    interfaces:
+                      - name: default
+                        masquerade: {}
+                networks:
+                  - name: default
+                    pod: {}
+                volumes:
+                  - name: rootdisk
+                    dataVolume:
+                      name: "{{ vm_name }}-rootdisk"
+                  - name: cloudinitdisk
+                    cloudInitNoCloud:
+                      secretRef:
+                        name: "{{ vm_name }}-cloud-init"
+
+    - name: Show VM cluster DNS
+      debug:
+        msg: "VM provisioning kicked off. SSH target: {{ vm_name }}.{{ service_name }}.{{ namespace }}.svc.cluster.local"

@@ -1,0 +1,3 @@
+hostname=router1
+ntp=enabled
+snmp=enabled

@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored.
+
+# Paste the full single-line public key from `cat ~/.ssh/id_ed25519.pub`
+ssh_public_key = "ssh-ed25519 AAAA... aap-demo"
+
+# Override defaults if needed:
+# namespace        = "pranjal30-dev"
+# vm_name          = "rhel-10-demo-vm"
+# service_name     = "headless"
+# vm_user          = "rhel"
+# data_source_name = "rhel10"

@@ -1,0 +1,25 @@
+---
+version: 3
+
+images:
+  base_image:
+    name: quay.io/ansible/awx-ee:latest
+
+dependencies:
+  galaxy: requirements.yml
+
+additional_build_files:
+  - src: requirements.yml
+    dest: configs
+
+additional_build_steps:
+  prepend_final:
+    - RUN dnf install -y unzip || microdnf install -y unzip || apt-get update && apt-get install -y unzip
+
+  append_final:
+    - ARG TERRAFORM_VERSION=1.9.5
+    - RUN curl -fsSL -o /tmp/terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+    - RUN unzip /tmp/terraform.zip -d /usr/local/bin/
+    - RUN chmod +x /usr/local/bin/terraform
+    - RUN rm /tmp/terraform.zip
+    - RUN terraform version

@@ -1,0 +1,27 @@
+---
+- name: Validate configuration
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Ensure demo directory exists
+      file:
+        path: /tmp/network_demo
+        state: directory
+        mode: "0755"
+
+    - name: Read updated config
+      command: cat /tmp/network_demo/config.txt
+      register: updated_config
+
+    - name: Show updated config
+      debug:
+        var: updated_config.stdout_lines
+
+    - name: Validate config
+      assert:
+        that:
+          - "'ntp=enabled' in updated_config.stdout"
+          - "'snmp=enabled' in updated_config.stdout"
+        success_msg: "Configuration is correct"
+        fail_msg: "Configuration still incorrect"

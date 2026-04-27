@@ -1,0 +1,23 @@
+---
+- name: Reset demo to broken state
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Ensure demo directory exists
+      file:
+        path: /tmp/network_demo
+        state: directory
+        mode: "0755"
+
+    - name: Force-write broken config
+      copy:
+        dest: /tmp/network_demo/config.txt
+        content: |
+          hostname=router1
+          ntp=disabled
+          snmp=disabled
+
+    - name: Confirm reset
+      debug:
+        msg: "Demo reset to broken state - ready for check -> remediate -> validate"

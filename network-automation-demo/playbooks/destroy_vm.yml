@@ -1,0 +1,18 @@
+---
+- name: Destroy OpenShift Virtualization VM via Terraform
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    terraform_dir: "{{ playbook_dir }}/../../terraform"
+
+  tasks:
+    - name: Destroy Terraform-managed resources
+      community.general.terraform:
+        project_path: "{{ terraform_dir }}"
+        state: absent
+
+    - name: Confirm teardown
+      debug:
+        msg: "Terraform-managed VM and Service destroyed"

@@ -1,0 +1,39 @@
+---
+- name: Destroy OpenShift Virtualization VM via kubernetes.core
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    namespace: pranjal30-dev
+    vm_name: rhel-10-demo-vm-terraform
+    service_name: headless-tf
+
+  tasks:
+    - name: Delete VirtualMachine
+      kubernetes.core.k8s:
+        state: absent
+        api_version: kubevirt.io/v1
+        kind: VirtualMachine
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+
+    - name: Delete headless Service
+      kubernetes.core.k8s:
+        state: absent
+        api_version: v1
+        kind: Service
+        name: "{{ service_name }}"
+        namespace: "{{ namespace }}"
+
+    - name: Delete cloud-init Secret
+      kubernetes.core.k8s:
+        state: absent
+        api_version: v1
+        kind: Secret
+        name: "{{ vm_name }}-cloud-init"
+        namespace: "{{ namespace }}"
+
+    - name: Confirm teardown
+      debug:
+        msg: "VM, Service, and cloud-init Secret deleted from {{ namespace }}"

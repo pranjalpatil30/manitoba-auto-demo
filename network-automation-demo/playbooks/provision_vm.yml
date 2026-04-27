@@ -1,0 +1,24 @@
+---
+- name: Provision OpenShift Virtualization VM via Terraform
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    terraform_dir: "{{ playbook_dir }}/../../terraform"
+
+  tasks:
+    - name: Apply Terraform configuration
+      community.general.terraform:
+        project_path: "{{ terraform_dir }}"
+        state: present
+        force_init: true
+      register: tf_result
+
+    - name: Show VM cluster DNS
+      debug:
+        msg: "VM ready at {{ tf_result.outputs.vm_dns.value }}"
+
+    - name: Show ready-to-paste inventory snippet
+      debug:
+        msg: "{{ tf_result.outputs.ansible_inventory_snippet.value.split('\n') }}"

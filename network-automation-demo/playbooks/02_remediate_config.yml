@@ -1,0 +1,20 @@
+---
+- name: Remediate network configuration
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Ensure demo directory exists
+      file:
+        path: /tmp/network_demo
+        state: directory
+        mode: "0755"
+
+    - name: Apply expected config
+      copy:
+        src: ../files/expected_config.txt
+        dest: /tmp/network_demo/config.txt
+
+    - name: Confirm remediation
+      debug:
+        msg: "Configuration remediated successfully"
