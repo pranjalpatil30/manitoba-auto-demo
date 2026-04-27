@@ -1,6 +1,6 @@
 all:
   hosts:
     auto-hosts:
-      ansible_host: rhel-10-manitoba-auto.headless.pranjal30-dev.svc.cluster.local
+      ansible_host: rhel-10-manitoba-auto.headless.pranjalpatil-ibm-dev.svc.cluster.local
       ansible_user: rhel
       ansible_port: 22
