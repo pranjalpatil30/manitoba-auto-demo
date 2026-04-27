@@ -1,6 +1,6 @@
 ---
 - name: Check network configuration
-  hosts: all
+  hosts: auto-hosts
   gather_facts: no
 
   tasks:
