@@ -20,53 +20,20 @@
       register: vm_info
       failed_when: vm_info.resources | length == 0
 
-    - name: Check if VM is already running
+    - name: Verify VM is configured to run
       kubernetes.core.k8s_info:
-        api_version: kubevirt.io/v1
-        kind: VirtualMachineInstance
-        name: "{{ vm_name }}"
-        namespace: "{{ namespace }}"
-      register: vmi_check
-
-    - name: Start VirtualMachine via kubectl command
-      command: >
-        kubectl patch virtualmachine {{ vm_name }}
-        -n {{ namespace }}
-        --type merge
-        -p '{"spec":{"runStrategy":"RerunOnFailure"}}'
-      when: vmi_check.resources | length == 0
-      register: start_result
-      changed_when: start_result.rc == 0
-      failed_when: false
-
-    - name: Alternative - Use oc/kubectl virtctl start command
-      command: kubectl virt start {{ vm_name }} -n {{ namespace }}
-      when:
-        - vmi_check.resources | length == 0
-        - start_result is failed or start_result is skipped
-      register: virtctl_start
-      changed_when: virtctl_start.rc == 0
-      failed_when: false
-
-    - name: Last resort - Patch to RerunOnFailure using kubernetes.core
-      kubernetes.core.k8s:
-        state: present
         api_version: kubevirt.io/v1
         kind: VirtualMachine
         name: "{{ vm_name }}"
         namespace: "{{ namespace }}"
-        definition:
-          spec:
-            runStrategy: RerunOnFailure
-      when:
-        - vmi_check.resources | length == 0
-        - (start_result is failed or start_result is skipped) and (virtctl_start is failed or virtctl_start is skipped)
-      register: k8s_patch_result
-      failed_when: false
+      register: vm_status
 
-    - name: Display start attempt results
+    - name: Display VM configuration
       debug:
-        msg: "VM start initiated. Waiting for VM to become ready..."
+        msg:
+          - "VM runStrategy: {{ vm_status.resources[0].spec.runStrategy }}"
+          - "VM running field: {{ vm_status.resources[0].spec.running | default('not set') }}"
+          - "Waiting for VM to start..."
 
     - name: Wait for VirtualMachineInstance to be created
       kubernetes.core.k8s_info:
