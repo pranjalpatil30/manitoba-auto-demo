@@ -23,24 +23,6 @@
           - ssh_public_key | length > 0
         fail_msg: "ssh_public_key is required (pass via -e or AAP survey)"
 
-    - name: Create cloud-init Secret
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: "{{ vm_name }}-cloud-init"
-            namespace: "{{ namespace }}"
-          type: Opaque
-          stringData:
-            userdata: |
-              #cloud-config
-              user: {{ vm_user }}
-              chpasswd: { expire: False }
-              ssh_authorized_keys:
-                - {{ ssh_public_key }}
-
     - name: Create headless Service
       kubernetes.core.k8s:
         state: present
@@ -116,8 +98,12 @@
                       name: "{{ vm_name }}-rootdisk"
                   - name: cloudinitdisk
                     cloudInitNoCloud:
-                      userDataSecretRef:
-                        name: "{{ vm_name }}-cloud-init"
+                      userData: |
+                        #cloud-config
+                        user: {{ vm_user }}
+                        chpasswd: { expire: False }
+                        ssh_authorized_keys:
+                          - {{ ssh_public_key }}
 
     - name: Show VM cluster DNS
       debug:
