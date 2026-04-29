@@ -5,7 +5,7 @@
   connection: local
 
   vars:
-    namespace: pranjalpatil-ibm-dev
+    namespace: pranjal30-dev
     vm_name: rhel-10-demo-vm-terraform
     service_name: headless-tf
     wait_timeout: 300  # 5 minutes

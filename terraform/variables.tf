@@ -7,7 +7,7 @@ variable "kubeconfig_path" {
 variable "namespace" {
   description = "OpenShift namespace where the VM and Service will be created."
   type        = string
-  default     = "pranjalpatil-ibm-dev"
+  default     = "pranjal30-dev"
 }
 
 variable "vm_name" {
