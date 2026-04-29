@@ -6,7 +6,7 @@
 
   vars:
     namespace: pranjalpatil-ibm-dev
-    vm_name: rhel-10-manitoba-auto
+    vm_name: rhel-10-manitoba-auto-terraform
     service_name: headless
     wait_timeout: 300  # 5 minutes
 
@@ -20,20 +20,28 @@
       register: vm_info
       failed_when: vm_info.resources | length == 0
 
-    - name: Verify VM is configured to run
-      kubernetes.core.k8s_info:
-        api_version: kubevirt.io/v1
-        kind: VirtualMachine
-        name: "{{ vm_name }}"
-        namespace: "{{ namespace }}"
-      register: vm_status
-
-    - name: Display VM configuration
+    - name: Display instructions to start VM
       debug:
         msg:
-          - "VM runStrategy: {{ vm_status.resources[0].spec.runStrategy }}"
-          - "VM running field: {{ vm_status.resources[0].spec.running | default('not set') }}"
-          - "Waiting for VM to start..."
+          - "VM '{{ vm_name }}' exists in namespace '{{ namespace }}'"
+          - "With runStrategy: Manual, you need to start the VM manually:"
+          - "Option 1: OpenShift Console -> Virtualization -> VirtualMachines -> {{ vm_name }} -> Actions -> Start"
+          - "Option 2: Run: oc virt start {{ vm_name }} -n {{ namespace }}"
+          - "Option 3: Run: virtctl start {{ vm_name }} -n {{ namespace }}"
+          - ""
+          - "This playbook will now wait for the VM to be started..."
+
+    - name: Check if VM is already running
+      kubernetes.core.k8s_info:
+        api_version: kubevirt.io/v1
+        kind: VirtualMachineInstance
+        name: "{{ vm_name }}"
+        namespace: "{{ namespace }}"
+      register: vmi_check
+
+    - name: Display current VM status
+      debug:
+        msg: "VM is {{ 'RUNNING' if vmi_check.resources | length > 0 else 'STOPPED - Please start it manually' }}"
 
     - name: Wait for VirtualMachineInstance to be created
       kubernetes.core.k8s_info:
