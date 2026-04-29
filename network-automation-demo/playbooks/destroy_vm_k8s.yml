@@ -5,9 +5,9 @@
   connection: local
 
   vars:
-    namespace: rhel-10-manitoba-auto
-    vm_name: rhel-10-demo-vm-terraform
-    service_name: headless-tf
+    namespace: pranjalpatil-ibm-dev
+    vm_name: rhel-10-manitoba-auto
+    service_name: headless
 
   tasks:
     - name: Delete VirtualMachine

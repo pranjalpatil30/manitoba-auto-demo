@@ -5,9 +5,9 @@
   connection: local
 
   vars:
-    namespace: rhel-10-manitoba-auto
-    vm_name: rhel-10-demo-vm-terraform
-    service_name: headless-tf
+    namespace: pranjalpatil-ibm-dev
+    vm_name: rhel-10-manitoba-auto
+    service_name: headless
     vm_user: rhel
     data_source_name: rhel10
     root_disk_size: 30Gi
