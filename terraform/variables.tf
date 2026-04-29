@@ -7,7 +7,7 @@ variable "kubeconfig_path" {
 variable "namespace" {
   description = "OpenShift namespace where the VM and Service will be created."
   type        = string
-  default     = "pranjal30-dev"
+  default     = "rhel-10-manitoba-auto"
 }
 
 variable "vm_name" {

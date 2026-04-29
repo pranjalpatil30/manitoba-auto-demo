@@ -5,7 +5,7 @@
   connection: local
 
   vars:
-    namespace: pranjal30-dev
+    namespace: rhel-10-manitoba-auto
     vm_name: rhel-10-demo-vm-terraform
     service_name: headless-tf
     vm_user: rhel
