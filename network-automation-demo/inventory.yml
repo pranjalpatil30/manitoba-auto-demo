@@ -1,7 +1,7 @@
 all:
   hosts:
     auto-hosts:
-      ansible_host: rhel-10-manitoba-auto.headless.rhel-10-manitoba-auto.svc.cluster.local
+      ansible_host: rhel-10-manitoba-auto.headless.pranjalpatil-ibm-dev.svc.cluster.local
       ansible_user: rhel
       ansible_port: 22
       ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
