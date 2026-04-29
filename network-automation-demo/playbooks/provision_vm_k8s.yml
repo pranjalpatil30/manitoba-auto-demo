@@ -6,7 +6,7 @@
 
   vars:
     namespace: pranjalpatil-ibm-dev
-    vm_name: rhel-10-manitoba-auto
+    vm_name: rhel-10-manitoba-auto-terraform
     service_name: headless
     vm_user: rhel
     data_source_name: rhel10
@@ -75,10 +75,6 @@
                 hostname: "{{ vm_name }}"
                 subdomain: "{{ service_name }}"
                 domain:
-                  cpu:
-                    cores: "{{ cpu_cores }}"
-                  memory:
-                    guest: "{{ memory }}"
                   devices:
                     disks:
                       - name: rootdisk
